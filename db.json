@@ -1,0 +1,192 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Admin",
+      "email": "admin@library.com",
+      "password": "admin123",
+      "role": "Admin",
+      "avatar": "https://i.pravatar.cc/150?img=11"
+    },
+    {
+      "id": "2",
+      "name": "Librarian",
+      "email": "librarian@library.com",
+      "password": "library123",
+      "role": "Librarian",
+      "avatar": "https://i.pravatar.cc/150?img=12"
+    }
+  ],
+  "books": [
+    {
+      "id": "1",
+      "title": "Clean Code",
+      "author": "Robert C. Martin",
+      "category": "Programming",
+      "isbn": "9780132350884",
+      "publisher": "Prentice Hall",
+      "year": 2008,
+      "total": 10,
+      "available": 8,
+      "cover": "https://covers.openlibrary.org/b/id/9610926-L.jpg"
+    },
+    {
+      "id": "2",
+      "title": "Python Crash Course",
+      "author": "Eric Matthes",
+      "category": "Programming",
+      "isbn": "978159327928800",
+      "publisher": "No Starch Press",
+      "year": 2023,
+      "total": 8,
+      "available": 5,
+      "cover": "https://covers.openlibrary.org/b/id/10521270-L.jpg",
+      "quantity": 4
+    },
+    {
+      "id": "3",
+      "title": "Database System Concepts",
+      "author": "Abraham Silberschatz",
+      "category": "Database",
+      "isbn": "9780078022159",
+      "publisher": "McGraw Hill",
+      "year": 2019,
+      "total": 6,
+      "available": 9,
+      "cover": "https://covers.openlibrary.org/b/id/12606582-L.jpg"
+    },
+    {
+      "id": "4",
+      "title": "Artificial Intelligence",
+      "author": "Stuart Russell",
+      "category": "AI",
+      "isbn": "9780136042594",
+      "publisher": "Pearson",
+      "year": 2021,
+      "total": 5,
+      "available": 44,
+      "cover": "https://covers.openlibrary.org/b/id/11153273-L.jpg",
+      "quantity": 40,
+      "status": "Available"
+    },
+    {
+      "id": "5",
+      "title": "Computer Networks",
+      "author": "Andrew S. Tanenbaum",
+      "category": "Networking",
+      "isbn": "9780132126953",
+      "publisher": "Pearson",
+      "year": 2020,
+      "total": 7,
+      "available": 9,
+      "cover": "https://covers.openlibrary.org/b/id/12606586-L.jpg"
+    }
+  ],
+  "members": [
+    {
+      "id": "2",
+      "name": "John David",
+      "email": "john@gmail.com",
+      "phone": "9876543211",
+      "department": "BSc Computer Science",
+      "membership": "Student",
+      "address": "Coimbatore",
+      "status": "Active",
+      "avatar": "https://i.pravatar.cc/300?img=8"
+    },
+    {
+      "id": "3",
+      "name": "Sarah Wilson",
+      "email": "sarah@gmail.com",
+      "phone": "9876543212",
+      "department": "MCA",
+      "membership": "Faculty",
+      "address": "Bangalore",
+      "status": "Inactive",
+      "avatar": "https://i.pravatar.cc/300?img=5"
+    },
+    {
+      "id": "4",
+      "name": "Priya Sharma",
+      "email": "priya@gmail.com",
+      "phone": "9876543213",
+      "department": "MBA",
+      "membership": "Student",
+      "address": "Hyderabad",
+      "status": "Active",
+      "avatar": "https://i.pravatar.cc/300?img=32"
+    },
+    {
+      "name": "C Melvyn Savio",
+      "email": "23bcna19@kristujayanti.com",
+      "phone": "7795155400",
+      "department": "CS",
+      "membership": "Student",
+      "dob": "2005-08-26",
+      "address": "bangalore",
+      "photo": "",
+      "id": "D4h_7mCWysc"
+    },
+    {
+      "name": "Karthikeyan.K",
+      "email": "karthik@gmail.com",
+      "phone": "9728672346",
+      "department": "CS",
+      "membership": "Student",
+      "address": "Pune",
+      "avatar": "",
+      "status": "Active",
+      "id": "_XyVtwyyqA4"
+    }
+  ],
+  "issues": [
+    {
+      "id": "1",
+      "bookId": 1,
+      "memberId": 1,
+      "issueDate": "2026-07-20",
+      "dueDate": "2026-08-05",
+      "returnDate": "2026-08-01",
+      "status": "Returned"
+    },
+    {
+      "id": "2",
+      "bookId": 3,
+      "memberId": 2,
+      "issueDate": "2026-07-10",
+      "dueDate": "2026-07-25",
+      "returnDate": "",
+      "status": "Issued"
+    },
+    {
+      "id": "3",
+      "bookId": 2,
+      "memberId": 3,
+      "issueDate": "2026-07-01",
+      "dueDate": "2026-07-15",
+      "returnDate": "2026-07-14",
+      "status": "Returned"
+    },
+    {
+      "id": "4",
+      "bookId": 5,
+      "memberId": 4,
+      "issueDate": "2026-07-22",
+      "dueDate": "2026-08-10",
+      "returnDate": "",
+      "status": "Issued"
+    },
+    {
+      "bookId": "4",
+      "bookTitle": "Artificial Intelligence",
+      "memberId": "D4h_7mCWysc",
+      "memberName": "C Melvyn Savio",
+      "issueDate": "2026-08-05",
+      "dueDate": "2026-08-27",
+      "returnDate": null,
+      "status": "Issued",
+      "id": "kD1Hx8lLARM"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

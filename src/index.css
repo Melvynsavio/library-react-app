@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body,
+#root{
+    width:100%;
+    height:100%;
+}
+
+body {
+    margin: 0;
+    background: #eef4ff;
+    color: #0f172a;
+    font-family: Inter, Arial, sans-serif;
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+html.dark body {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+::-webkit-scrollbar{
+    width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#94a3b8;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-track{
+    background:#f1f5f9;
+}
+
+.page{
+    min-height:100vh;
+    background:#eef4ff;
+}
+
+.card{
+    background:white;
+    border-radius:24px;
+    box-shadow:
+    0 10px 30px rgba(0,0,0,.08);
+}
+
+.table-card{
+    background:white;
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow:
+    0 15px 35px rgba(0,0,0,.08);
+}
+
+.primary-btn{
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:white;
+    border:none;
+    border-radius:14px;
+    padding:12px 28px;
+    cursor:pointer;
+    transition:.3s;
+    font-weight:600;
+}
+
+.primary-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 15px 30px rgba(37,99,235,.35);
+}
+
+.input{
+    width:100%;
+    border:1px solid #cbd5e1;
+    border-radius:14px;
+    padding:14px;
+    outline:none;
+}
+
+.input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.15);
+}
+
+/* ================================
+   DARK MODE
+================================ */
+
+html.dark .page {
+    background: #0f172a;
+}
+
+html.dark .card {
+    background: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .table-card {
+    background: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+/* White Tailwind backgrounds */
+html.dark .bg-white {
+    background-color: #1e293b !important;
+}
+
+/* Light backgrounds */
+html.dark .bg-slate-50 {
+    background-color: #0f172a !important;
+}
+
+html.dark .bg-slate-100 {
+    background-color: #1e293b !important;
+}
+
+/* Text */
+html.dark .text-slate-800 {
+    color: #f8fafc !important;
+}
+
+html.dark .text-slate-700 {
+    color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600 {
+    color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500 {
+    color: #94a3b8 !important;
+}
+
+/* Borders */
+html.dark .border-slate-200 {
+    border-color: #334155 !important;
+}
+
+html.dark .border-slate-300 {
+    border-color: #475569 !important;
+}
+
+/* Inputs */
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Table rows */
+html.dark tr {
+    border-color: #334155 !important;
+}
+
+html.dark tbody tr:hover {
+    background-color: #334155 !important;
+}
+
+/* Scrollbar */
+html.dark ::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
