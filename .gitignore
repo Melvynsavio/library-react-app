@@ -1,24 +1,70 @@
-# Logs
-logs
-*.log
+# ==========================================
+# NODE.JS / NPM
+# ==========================================
+
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# ==========================================
+# REACT / VITE
+# ==========================================
+
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
+# ==========================================
+# ENVIRONMENT FILES
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# BACKEND
+# ==========================================
+
+backend/node_modules/
+backend/.env
+
+# ==========================================
+# LOG FILES
+# ==========================================
+
+*.log
+logs/
+backend/logs/*.log
+
+# ==========================================
+# IDE / EDITOR
+# ==========================================
+
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# TEMPORARY FILES
+# ==========================================
+
+*.tmp
+*.temp
+*.bak
