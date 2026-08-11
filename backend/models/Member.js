@@ -11,8 +11,8 @@ const memberSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      lowercase: true,
       trim: true,
+      lowercase: true,
     },
 
     phone: {
@@ -29,13 +29,20 @@ const memberSchema = new mongoose.Schema(
 
     membershipType: {
       type: String,
-      enum: ["Regular", "Premium", "Student"],
+      enum: [
+        "Regular",
+        "Premium",
+        "Student",
+      ],
       default: "Regular",
     },
 
     status: {
       type: String,
-      enum: ["Active", "Inactive"],
+      enum: [
+        "Active",
+        "Inactive",
+      ],
       default: "Active",
     },
   },
@@ -44,4 +51,5 @@ const memberSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Member", memberSchema);
+module.exports =
+  mongoose.model("Member", memberSchema);

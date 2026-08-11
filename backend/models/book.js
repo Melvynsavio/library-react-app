@@ -16,13 +16,13 @@ const bookSchema = new mongoose.Schema(
 
     category: {
       type: String,
-      required: true,
+      default: "General",
       trim: true,
     },
 
     isbn: {
       type: String,
-      default: "",
+      required: true,
       trim: true,
     },
 
@@ -35,14 +35,8 @@ const bookSchema = new mongoose.Schema(
 
     available: {
       type: Number,
-      required: true,
-      min: 0,
       default: 1,
-    },
-
-    status: {
-      type: String,
-      default: "Available",
+      min: 0,
     },
   },
   {

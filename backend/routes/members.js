@@ -1,13 +1,12 @@
 const express = require("express");
-const router = express.Router();
-const {
-  logActivity,
-} = require("../logger");
-
+const mongoose = require("mongoose");
 const Member = require("../models/Member");
 
+const router = express.Router();
+
 // ==========================================
-// GET MEMBERS
+// GET ALL MEMBERS
+// GET /api/members
 // ==========================================
 
 router.get("/", async (req, res) => {
@@ -16,12 +15,14 @@ router.get("/", async (req, res) => {
       createdAt: -1,
     });
 
-    res.json(members);
-
+    res.status(200).json({
+      success: true,
+      count: members.length,
+      data: members,
+    });
   } catch (error) {
-    console.error("GET MEMBERS ERROR:", error);
-
     res.status(500).json({
+      success: false,
       message: "Failed to fetch members",
       error: error.message,
     });
@@ -29,25 +30,38 @@ router.get("/", async (req, res) => {
 });
 
 // ==========================================
-// GET MEMBER
+// GET ONE MEMBER
+// GET /api/members/:id
 // ==========================================
 
 router.get("/:id", async (req, res) => {
   try {
-    const member = await Member.findById(
-      req.params.id
-    );
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid member ID",
+      });
+    }
+
+    const member =
+      await Member.findById(id);
 
     if (!member) {
       return res.status(404).json({
+        success: false,
         message: "Member not found",
       });
     }
 
-    res.json(member);
-
+    res.status(200).json({
+      success: true,
+      data: member,
+    });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Failed to fetch member",
       error: error.message,
     });
@@ -56,13 +70,11 @@ router.get("/:id", async (req, res) => {
 
 // ==========================================
 // CREATE MEMBER
+// POST /api/members
 // ==========================================
 
 router.post("/", async (req, res) => {
   try {
-    console.log("MEMBER DATA RECEIVED:");
-    console.log(req.body);
-
     const {
       name,
       email,
@@ -74,20 +86,9 @@ router.post("/", async (req, res) => {
 
     if (!name || !email || !phone) {
       return res.status(400).json({
+        success: false,
         message:
           "Name, email and phone are required",
-      });
-    }
-
-    const existingMember =
-      await Member.findOne({
-        email: email.toLowerCase(),
-      });
-
-    if (existingMember) {
-      return res.status(400).json({
-        message:
-          "A member with this email already exists",
       });
     }
 
@@ -95,31 +96,25 @@ router.post("/", async (req, res) => {
       name,
       email,
       phone,
-      address: address || "",
-      membershipType:
-        membershipType || "Regular",
-      status: status || "Active",
+      address,
+      membershipType,
+      status,
     });
 
-    const savedMember = await member.save();
-    logActivity(
-  "MEMBER ADDED",
-  `${savedMember.name} (${savedMember.email})`
-);
+    const savedMember =
+      await member.save();
 
-    console.log("MEMBER CREATED:");
-    console.log(savedMember);
-
-    res.status(201).json(savedMember);
-
+    res.status(201).json({
+      success: true,
+      message:
+        "Member created successfully",
+      data: savedMember,
+    });
   } catch (error) {
-    console.error(
-      "CREATE MEMBER ERROR:",
-      error
-    );
-
     res.status(500).json({
-      message: "Failed to create member",
+      success: false,
+      message:
+        "Failed to create member",
       error: error.message,
     });
   }
@@ -127,13 +122,23 @@ router.post("/", async (req, res) => {
 
 // ==========================================
 // UPDATE MEMBER
+// PUT /api/members/:id
 // ==========================================
 
 router.put("/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid member ID",
+      });
+    }
+
     const member =
       await Member.findByIdAndUpdate(
-        req.params.id,
+        id,
         req.body,
         {
           new: true,
@@ -143,20 +148,22 @@ router.put("/:id", async (req, res) => {
 
     if (!member) {
       return res.status(404).json({
+        success: false,
         message: "Member not found",
       });
     }
 
-    res.json(member);
-
+    res.status(200).json({
+      success: true,
+      message:
+        "Member updated successfully",
+      data: member,
+    });
   } catch (error) {
-    console.error(
-      "UPDATE MEMBER ERROR:",
-      error
-    );
-
     res.status(500).json({
-      message: "Failed to update member",
+      success: false,
+      message:
+        "Failed to update member",
       error: error.message,
     });
   }
@@ -164,33 +171,41 @@ router.put("/:id", async (req, res) => {
 
 // ==========================================
 // DELETE MEMBER
+// DELETE /api/members/:id
 // ==========================================
 
 router.delete("/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid member ID",
+      });
+    }
+
     const member =
-      await Member.findByIdAndDelete(
-        req.params.id
-      );
+      await Member.findByIdAndDelete(id);
 
     if (!member) {
       return res.status(404).json({
+        success: false,
         message: "Member not found",
       });
     }
 
-    res.json({
-      message: "Member deleted successfully",
+    res.status(200).json({
+      success: true,
+      message:
+        "Member deleted successfully",
+      data: member,
     });
-
   } catch (error) {
-    console.error(
-      "DELETE MEMBER ERROR:",
-      error
-    );
-
     res.status(500).json({
-      message: "Failed to delete member",
+      success: false,
+      message:
+        "Failed to delete member",
       error: error.message,
     });
   }

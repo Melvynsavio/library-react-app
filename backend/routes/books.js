@@ -1,13 +1,12 @@
 const express = require("express");
-const router = express.Router();
-const {
-  logActivity,
-} = require("../logger");
-
+const mongoose = require("mongoose");
 const Book = require("../models/Book");
+
+const router = express.Router();
 
 // ==========================================
 // GET ALL BOOKS
+// GET /api/books
 // ==========================================
 
 router.get("/", async (req, res) => {
@@ -16,11 +15,14 @@ router.get("/", async (req, res) => {
       createdAt: -1,
     });
 
-    res.json(books);
+    res.status(200).json({
+      success: true,
+      count: books.length,
+      data: books,
+    });
   } catch (error) {
-    console.error("GET BOOKS ERROR:", error);
-
     res.status(500).json({
+      success: false,
       message: "Failed to fetch books",
       error: error.message,
     });
@@ -29,21 +31,36 @@ router.get("/", async (req, res) => {
 
 // ==========================================
 // GET ONE BOOK
+// GET /api/books/:id
 // ==========================================
 
 router.get("/:id", async (req, res) => {
   try {
-    const book = await Book.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid book ID",
+      });
+    }
+
+    const book = await Book.findById(id);
 
     if (!book) {
       return res.status(404).json({
+        success: false,
         message: "Book not found",
       });
     }
 
-    res.json(book);
+    res.status(200).json({
+      success: true,
+      data: book,
+    });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Failed to fetch book",
       error: error.message,
     });
@@ -52,13 +69,11 @@ router.get("/:id", async (req, res) => {
 
 // ==========================================
 // CREATE BOOK
+// POST /api/books
 // ==========================================
 
 router.post("/", async (req, res) => {
   try {
-    console.log("BOOK DATA RECEIVED:");
-    console.log(req.body);
-
     const {
       title,
       author,
@@ -67,40 +82,33 @@ router.post("/", async (req, res) => {
       quantity,
     } = req.body;
 
-    if (!title || !author || !category) {
+    if (!title || !author || !isbn) {
       return res.status(400).json({
+        success: false,
         message:
-          "Title, author and category are required",
+          "Title, author and ISBN are required",
       });
     }
-
-    const bookQuantity = Number(quantity) || 1;
 
     const book = new Book({
       title,
       author,
       category,
-      isbn: isbn || "",
-      quantity: bookQuantity,
-      available: bookQuantity,
-      status: "Available",
+      isbn,
+      quantity,
+      available: quantity,
     });
 
     const savedBook = await book.save();
-    logActivity(
-  "BOOK ADDED",
-  `${savedBook.title} by ${savedBook.author}`
-);
 
-    console.log("BOOK CREATED:");
-    console.log(savedBook);
-
-    res.status(201).json(savedBook);
-
+    res.status(201).json({
+      success: true,
+      message: "Book created successfully",
+      data: savedBook,
+    });
   } catch (error) {
-    console.error("CREATE BOOK ERROR:", error);
-
     res.status(500).json({
+      success: false,
       message: "Failed to create book",
       error: error.message,
     });
@@ -109,12 +117,22 @@ router.post("/", async (req, res) => {
 
 // ==========================================
 // UPDATE BOOK
+// PUT /api/books/:id
 // ==========================================
 
 router.put("/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid book ID",
+      });
+    }
+
     const book = await Book.findByIdAndUpdate(
-      req.params.id,
+      id,
       req.body,
       {
         new: true,
@@ -124,16 +142,19 @@ router.put("/:id", async (req, res) => {
 
     if (!book) {
       return res.status(404).json({
+        success: false,
         message: "Book not found",
       });
     }
 
-    res.json(book);
-
+    res.status(200).json({
+      success: true,
+      message: "Book updated successfully",
+      data: book,
+    });
   } catch (error) {
-    console.error("UPDATE BOOK ERROR:", error);
-
     res.status(500).json({
+      success: false,
       message: "Failed to update book",
       error: error.message,
     });
@@ -142,28 +163,37 @@ router.put("/:id", async (req, res) => {
 
 // ==========================================
 // DELETE BOOK
+// DELETE /api/books/:id
 // ==========================================
 
 router.delete("/:id", async (req, res) => {
   try {
-    const book = await Book.findByIdAndDelete(
-      req.params.id
-    );
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid book ID",
+      });
+    }
+
+    const book = await Book.findByIdAndDelete(id);
 
     if (!book) {
       return res.status(404).json({
+        success: false,
         message: "Book not found",
       });
     }
 
-    res.json({
+    res.status(200).json({
+      success: true,
       message: "Book deleted successfully",
+      data: book,
     });
-
   } catch (error) {
-    console.error("DELETE BOOK ERROR:", error);
-
     res.status(500).json({
+      success: false,
       message: "Failed to delete book",
       error: error.message,
     });
