@@ -1,8 +1,13 @@
 const express = require("express");
+const mongoose = require("mongoose");
 
 const Return = require("../models/Return");
 const Issue = require("../models/Issue");
-const Book = require("../models/Book");
+const Book = require("../models/book");
+const {
+  isValidDate,
+  sendValidationError,
+} = require("../utils/validation");
 
 const router = express.Router();
 
@@ -38,12 +43,19 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { issueId, returnDate } = req.body;
+    const { issueId, returnDate } = req.body || {};
 
-    if (!issueId) {
-      return res.status(400).json({
-        message: "Issue ID is required",
-      });
+    const errors = {};
+
+    if (!mongoose.Types.ObjectId.isValid(issueId)) {
+      errors.issueId = "Select a valid issue record";
+    }
+    if (returnDate && !isValidDate(returnDate)) {
+      errors.returnDate = "Enter a valid return date";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
     }
 
     // Find issue
@@ -75,6 +87,18 @@ router.post("/", async (req, res) => {
     const actualReturnDate = returnDate
       ? new Date(returnDate)
       : new Date();
+
+    if (actualReturnDate < new Date(issue.issueDate)) {
+      return sendValidationError(res, {
+        returnDate: "Return date cannot be before the issue date",
+      });
+    }
+
+    if (actualReturnDate > new Date()) {
+      return sendValidationError(res, {
+        returnDate: "Return date cannot be in the future",
+      });
+    }
 
     const dueDate = new Date(issue.dueDate);
 
@@ -115,7 +139,7 @@ router.post("/", async (req, res) => {
     await issue.save();
 
     // Increase available book count
-    book.available = book.available + 1;
+    book.available = Math.min(book.available + 1, book.quantity);
 
     // Update status
     if (book.available > 0) {
@@ -154,6 +178,13 @@ router.post("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid return ID",
+      });
+    }
+
     const returnRecord = await Return.findById(req.params.id)
       .populate("bookId")
       .populate("memberId")

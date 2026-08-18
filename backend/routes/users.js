@@ -1,5 +1,10 @@
 const express = require("express");
 const User = require("../models/User");
+const {
+  cleanText,
+  isValidEmail,
+  sendValidationError,
+} = require("../utils/validation");
 
 const router = express.Router();
 
@@ -28,18 +33,31 @@ router.get("/", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const body = req.body || {};
+    const name = cleanText(body.name);
+    const email = cleanText(body.email).toLowerCase();
+    const password =
+      typeof body.password === "string" ? body.password : "";
+    const errors = {};
 
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        message: "Name, email and password are required",
-      });
+    if (name.length < 2 || name.length > 100) {
+      errors.name = "Name must be between 2 and 100 characters";
+    }
+    if (!isValidEmail(email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (password.length < 8 || password.length > 72) {
+      errors.password = "Password must be between 8 and 72 characters";
+    } else if (!/[a-z]/.test(password)) {
+      errors.password = "Password must include a lowercase letter";
+    } else if (!/[A-Z]/.test(password)) {
+      errors.password = "Password must include an uppercase letter";
+    } else if (!/\d/.test(password)) {
+      errors.password = "Password must include a number";
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        message: "Password must contain at least 6 characters",
-      });
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
     }
 
     const existingUser = await User.findOne({
@@ -54,9 +72,9 @@ router.post("/register", async (req, res) => {
 
     const user = new User({
       name,
-      email: email.toLowerCase(),
+      email,
       password,
-      role: role || "User",
+      role: "User",
     });
 
     const savedUser = await user.save();
@@ -87,16 +105,25 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const body = req.body || {};
+    const email = cleanText(body.email).toLowerCase();
+    const password =
+      typeof body.password === "string" ? body.password : "";
+    const errors = {};
 
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
+    if (!isValidEmail(email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!password || password.length > 72) {
+      errors.password = "Enter a valid password";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
     }
 
     const user = await User.findOne({
-      email: email.toLowerCase(),
+      email,
     });
 
     if (!user) {

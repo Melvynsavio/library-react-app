@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
+import { isValidEmail, isValidPhone } from "../utils/validation";
 import { toast } from "react-hot-toast";
 import {
   FaUsers,
@@ -11,8 +12,6 @@ import {
   FaEnvelope,
   FaPhone,
 } from "react-icons/fa";
-
-const API_URL = "http://localhost:3001/api";
 
 function Members() {
   const [members, setMembers] = useState([]);
@@ -38,11 +37,9 @@ function Members() {
     try {
       setLoading(true);
 
-      const response = await axios.get(
-        `${API_URL}/members`
-      );
+      const response = await api.get("/members");
 
-      setMembers(response.data);
+      setMembers(response.data.data);
     } catch (error) {
       console.error("FETCH MEMBERS ERROR:", error);
 
@@ -116,31 +113,50 @@ function Members() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone
-    ) {
-      toast.error(
-        "Name, email and phone are required"
-      );
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const phone = formData.phone.trim();
+    const address = formData.address.trim();
+
+    if (name.length < 2 || name.length > 100) {
+      toast.error("Name must be between 2 and 100 characters");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      toast.error("Enter a valid phone number with 7 to 15 digits");
+      return;
+    }
+    if (address.length > 300) {
+      toast.error("Address cannot exceed 300 characters");
       return;
     }
 
+    const payload = {
+      ...formData,
+      name,
+      email,
+      phone,
+      address,
+    };
+
     try {
       if (editingMember) {
-        await axios.put(
-          `${API_URL}/members/${editingMember._id}`,
-          formData
+        await api.put(
+          `/members/${editingMember._id}`,
+          payload
         );
 
         toast.success(
           "Member updated successfully"
         );
       } else {
-        await axios.post(
-          `${API_URL}/members`,
-          formData
+        await api.post(
+          "/members",
+          payload
         );
 
         toast.success(
@@ -186,9 +202,7 @@ function Members() {
     if (!confirmed) return;
 
     try {
-      await axios.delete(
-        `${API_URL}/members/${id}`
-      );
+      await api.delete(`/members/${id}`);
 
       toast.success(
         "Member deleted successfully"
@@ -477,6 +491,9 @@ function Members() {
                 <input
                   type="text"
                   name="name"
+                  required
+                  minLength={2}
+                  maxLength={100}
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter member name"
@@ -496,6 +513,8 @@ function Members() {
                 <input
                   type="email"
                   name="email"
+                  required
+                  maxLength={254}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter email"
@@ -515,6 +534,9 @@ function Members() {
                 <input
                   type="tel"
                   name="phone"
+                  required
+                  inputMode="tel"
+                  maxLength={25}
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="Enter phone number"
@@ -533,6 +555,7 @@ function Members() {
 
                 <textarea
                   name="address"
+                  maxLength={300}
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Enter address"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
+import { isValidIsbn } from "../utils/validation";
 import { toast } from "react-hot-toast";
 import {
   FaBook,
@@ -9,8 +10,6 @@ import {
   FaTrash,
   FaTimes,
 } from "react-icons/fa";
-
-const API_URL = "http://localhost:3001/api";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -35,9 +34,9 @@ function Books() {
     try {
       setLoading(true);
 
-      const response = await axios.get(`${API_URL}/books`);
+      const response = await api.get("/books");
 
-      setBooks(response.data);
+      setBooks(response.data.data);
     } catch (error) {
       console.error("FETCH BOOKS ERROR:", error);
 
@@ -108,32 +107,47 @@ function Books() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !formData.title ||
-      !formData.author ||
-      !formData.category ||
-      !formData.quantity
-    ) {
-      toast.error("Please fill in all required fields");
+    const title = formData.title.trim();
+    const author = formData.author.trim();
+    const category = formData.category.trim();
+    const isbn = formData.isbn.trim();
+    const quantity = Number(formData.quantity);
+
+    if (title.length < 2 || title.length > 150) {
+      toast.error("Title must be between 2 and 150 characters");
+      return;
+    }
+    if (author.length < 2 || author.length > 100) {
+      toast.error("Author must be between 2 and 100 characters");
+      return;
+    }
+    if (category.length > 50) {
+      toast.error("Category cannot exceed 50 characters");
+      return;
+    }
+    if (!isValidIsbn(isbn)) {
+      toast.error("Enter a valid ISBN-10 or ISBN-13");
+      return;
+    }
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10000) {
+      toast.error("Quantity must be a whole number between 1 and 10,000");
       return;
     }
 
+    const payload = { title, author, category, isbn, quantity };
+
     try {
       if (editingBook) {
-        await axios.put(
-          `${API_URL}/books/${editingBook._id}`,
-          formData
+        await api.put(
+          `/books/${editingBook._id}`,
+          payload
         );
 
         toast.success("Book updated successfully");
       } else {
-        await axios.post(
-          `${API_URL}/books`,
-          {
-            ...formData,
-            quantity: Number(formData.quantity),
-            available: Number(formData.quantity),
-          }
+        await api.post(
+          "/books",
+          payload
         );
 
         toast.success("Book added successfully");
@@ -175,7 +189,7 @@ function Books() {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${API_URL}/books/${id}`);
+      await api.delete(`/books/${id}`);
 
       toast.success("Book deleted successfully");
 
@@ -459,6 +473,9 @@ function Books() {
                 <input
                   type="text"
                   name="title"
+                  required
+                  minLength={2}
+                  maxLength={150}
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Book title"
@@ -476,6 +493,9 @@ function Books() {
                 <input
                   type="text"
                   name="author"
+                  required
+                  minLength={2}
+                  maxLength={100}
                   value={formData.author}
                   onChange={handleChange}
                   placeholder="Author name"
@@ -493,6 +513,7 @@ function Books() {
                 <input
                   type="text"
                   name="category"
+                  maxLength={50}
                   value={formData.category}
                   onChange={handleChange}
                   placeholder="e.g. Technology"
@@ -510,6 +531,8 @@ function Books() {
                 <input
                   type="text"
                   name="isbn"
+                  required
+                  maxLength={20}
                   value={formData.isbn}
                   onChange={handleChange}
                   placeholder="ISBN number"
@@ -527,6 +550,10 @@ function Books() {
                 <input
                   type="number"
                   name="quantity"
+                  required
+                  min={1}
+                  max={10000}
+                  step={1}
                   min="1"
                   value={formData.quantity}
                   onChange={handleChange}

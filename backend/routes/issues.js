@@ -1,7 +1,12 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Issue = require("../models/Issue");
-const Book = require("../models/Book");
+const Book = require("../models/book");
 const Member = require("../models/Member");
+const {
+  isValidDate,
+  sendValidationError,
+} = require("../utils/validation");
 
 const router = express.Router();
 
@@ -38,13 +43,35 @@ router.post("/", async (req, res) => {
       memberId,
       issueDate,
       dueDate,
-    } = req.body;
+    } = req.body || {};
 
-    // Validate required fields
-    if (!bookId || !memberId || !dueDate) {
-      return res.status(400).json({
-        message: "Book, member and due date are required",
-      });
+    const errors = {};
+    const actualIssueDate = issueDate ? new Date(issueDate) : new Date();
+    const actualDueDate = dueDate ? new Date(dueDate) : null;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (!mongoose.Types.ObjectId.isValid(bookId)) {
+      errors.bookId = "Select a valid book";
+    }
+    if (!mongoose.Types.ObjectId.isValid(memberId)) {
+      errors.memberId = "Select a valid member";
+    }
+    if (issueDate && !isValidDate(issueDate)) {
+      errors.issueDate = "Enter a valid issue date";
+    } else if (actualIssueDate > new Date()) {
+      errors.issueDate = "Issue date cannot be in the future";
+    }
+    if (!isValidDate(dueDate)) {
+      errors.dueDate = "Enter a valid due date";
+    } else if (actualDueDate < actualIssueDate) {
+      errors.dueDate = "Due date cannot be before the issue date";
+    } else if (!issueDate && actualDueDate < today) {
+      errors.dueDate = "Due date cannot be in the past";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
     }
 
     // Find book
@@ -79,12 +106,25 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const existingIssue = await Issue.exists({
+      bookId,
+      memberId,
+      status: "Issued",
+    });
+
+    if (existingIssue) {
+      return res.status(409).json({
+        success: false,
+        message: "This member already has this book issued",
+      });
+    }
+
     // Create issue record
     const issue = new Issue({
       bookId,
       memberId,
-      issueDate: issueDate || new Date(),
-      dueDate,
+      issueDate: actualIssueDate,
+      dueDate: actualDueDate,
       status: "Issued",
       fine: 0,
     });
@@ -126,6 +166,13 @@ router.post("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid issue ID",
+      });
+    }
+
     const issue = await Issue.findById(req.params.id)
       .populate("bookId")
       .populate("memberId");

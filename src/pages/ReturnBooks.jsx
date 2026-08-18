@@ -19,9 +19,28 @@ export default function ReturnBooks() {
       const booksRes = await api.get("/books");
       const membersRes = await api.get("/members");
 
-      setIssues(issuesRes.data);
-      setBooks(booksRes.data);
-      setMembers(membersRes.data);
+      setIssues(
+        issuesRes.data.map((issue) => ({
+          ...issue,
+          id: issue._id,
+          bookId: issue.bookId?._id || issue.bookId,
+          memberId: issue.memberId?._id || issue.memberId,
+          issueDate: issue.issueDate?.split("T")[0],
+          dueDate: issue.dueDate?.split("T")[0],
+        }))
+      );
+      setBooks(
+        booksRes.data.data.map((book) => ({
+          ...book,
+          id: book._id,
+        }))
+      );
+      setMembers(
+        membersRes.data.data.map((member) => ({
+          ...member,
+          id: member._id,
+        }))
+      );
     } catch (error) {
       console.error(error);
     }
@@ -29,28 +48,18 @@ export default function ReturnBooks() {
 
   const returnBook = async (issue) => {
     try {
-      // Update issue status
-      await api.put(`/issues/${issue.id}`, {
-        ...issue,
-        status: "Returned",
-        returnDate: new Date().toISOString().split("T")[0]
+      await api.post("/returns", {
+        issueId: issue.id,
+        returnDate: new Date().toISOString().split("T")[0],
       });
-
-      // Increase available book count
-      const book = books.find((b) => b.id === issue.bookId);
-
-      if (book) {
-        await api.put(`/books/${book.id}`, {
-          ...book,
-          available: Number(book.available) + 1
-        });
-      }
 
       loadData();
       alert("Book returned successfully.");
     } catch (error) {
       console.error(error);
-      alert("Unable to return book.");
+      alert(
+        error.response?.data?.message || "Unable to return book."
+      );
     }
   };
 

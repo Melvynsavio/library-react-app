@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
+import { isValidEmail, validatePassword } from "../utils/validation";
 import { toast } from "react-hot-toast";
-
-const API_URL = "http://localhost:3001/api";
 
 function Registration() {
   const navigate = useNavigate();
@@ -34,13 +33,20 @@ function Registration() {
       confirmPassword,
     } = formData;
 
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error("Please fill in all fields");
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedName.length < 2 || normalizedName.length > 100) {
+      toast.error("Name must be between 2 and 100 characters");
       return;
     }
-
-    if (password.length < 6) {
-      toast.error("Password must contain at least 6 characters");
+    if (!isValidEmail(normalizedEmail)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      toast.error(passwordError);
       return;
     }
 
@@ -52,11 +58,11 @@ function Registration() {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_URL}/users/register`,
+      const response = await api.post(
+        "/users/register",
         {
-          name,
-          email,
+          name: normalizedName,
+          email: normalizedEmail,
           password,
           role: "User",
         }
@@ -145,6 +151,10 @@ function Registration() {
               <input
                 type="text"
                 name="name"
+                required
+                minLength={2}
+                maxLength={100}
+                autoComplete="name"
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={handleChange}
@@ -164,6 +174,9 @@ function Registration() {
               <input
                 type="email"
                 name="email"
+                required
+                maxLength={254}
+                autoComplete="email"
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
@@ -183,7 +196,11 @@ function Registration() {
               <input
                 type="password"
                 name="password"
-                placeholder="Minimum 6 characters"
+                required
+                minLength={8}
+                maxLength={72}
+                autoComplete="new-password"
+                placeholder="8+ characters with uppercase, lowercase and number"
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
@@ -202,6 +219,10 @@ function Registration() {
               <input
                 type="password"
                 name="confirmPassword"
+                required
+                minLength={8}
+                maxLength={72}
+                autoComplete="new-password"
                 placeholder="Re-enter your password"
                 value={formData.confirmPassword}
                 onChange={handleChange}

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
+import { isValidEmail } from "../utils/validation";
 import { toast } from "react-hot-toast";
-
-const API_URL = "http://localhost:3001/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -15,18 +14,24 @@ function Login() {
   const loginUser = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      toast.error("Please enter email and password");
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!isValidEmail(normalizedEmail)) {
+      toast.error("Enter a valid email address");
+      return;
+    }
+    if (!password || password.length > 72) {
+      toast.error("Enter a valid password");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_URL}/users/login`,
+      const response = await api.post(
+        "/users/login",
         {
-          email,
+          email: normalizedEmail,
           password,
         }
       );
@@ -99,6 +104,9 @@ function Login() {
 
               <input
                 type="email"
+                required
+                maxLength={254}
+                autoComplete="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -113,6 +121,9 @@ function Login() {
 
               <input
                 type="password"
+                required
+                maxLength={72}
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -137,7 +148,7 @@ function Login() {
             </p>
 
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/registration")}
               className="text-blue-600 font-semibold hover:underline mt-1"
             >
               Create Account

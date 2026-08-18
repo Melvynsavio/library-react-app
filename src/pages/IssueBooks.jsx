@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import toast from "react-hot-toast";
 import {
   FaBook,
@@ -11,8 +11,6 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
-
-const API = "http://localhost:3001";
 
 export default function IssueBooks() {
   const [books, setBooks] = useState([]);
@@ -41,14 +39,35 @@ export default function IssueBooks() {
       setLoading(true);
 
       const [booksRes, membersRes, issuesRes] = await Promise.all([
-        axios.get(`${API}/books`),
-        axios.get(`${API}/members`),
-        axios.get(`${API}/issues`),
+        api.get("/books"),
+        api.get("/members"),
+        api.get("/issues"),
       ]);
 
-      setBooks(booksRes.data);
-      setMembers(membersRes.data);
-      setIssues(issuesRes.data);
+      setBooks(
+        booksRes.data.data.map((book) => ({
+          ...book,
+          id: book._id,
+        }))
+      );
+      setMembers(
+        membersRes.data.data.map((member) => ({
+          ...member,
+          id: member._id,
+        }))
+      );
+      setIssues(
+        issuesRes.data.map((issue) => ({
+          ...issue,
+          id: issue._id,
+          bookId: issue.bookId?._id || issue.bookId,
+          bookTitle: issue.bookId?.title || "",
+          memberId: issue.memberId?._id || issue.memberId,
+          memberName: issue.memberId?.name || "",
+          issueDate: issue.issueDate?.split("T")[0],
+          dueDate: issue.dueDate?.split("T")[0],
+        }))
+      );
     } catch (error) {
       console.error(error);
       toast.error("Unable to load issue book data");
@@ -131,6 +150,12 @@ export default function IssueBooks() {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+    if (form.issueDate > today) {
+      toast.error("Issue date cannot be in the future");
+      return;
+    }
+
     const selectedBook = books.find(
       (book) => String(book.id) === String(form.bookId)
     );
@@ -146,6 +171,11 @@ export default function IssueBooks() {
 
     if (!selectedMember) {
       toast.error("Selected member was not found");
+      return;
+    }
+
+    if (selectedMember.status !== "Active") {
+      toast.error("Only active members can borrow books");
       return;
     }
 
@@ -191,18 +221,7 @@ export default function IssueBooks() {
         status: "Issued",
       };
 
-      await axios.post(`${API}/issues`, issueData);
-
-      // ==========================================
-      // 2. DECREASE BOOK AVAILABLE COUNT
-      // ==========================================
-
-      const newAvailable = available - 1;
-
-      await axios.patch(`${API}/books/${selectedBook.id}`, {
-        available: newAvailable,
-        status: newAvailable > 0 ? "Available" : "Issued",
-      });
+      await api.post("/issues", issueData);
 
       toast.success("Book issued successfully!");
 
@@ -212,7 +231,9 @@ export default function IssueBooks() {
     } catch (error) {
       console.error(error);
 
-      toast.error("Failed to issue book");
+      toast.error(
+        error.response?.data?.message || "Failed to issue book"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -974,9 +995,11 @@ export default function IssueBooks() {
                       <option
                         key={member.id}
                         value={member.id}
+                        disabled={member.status !== "Active"}
                       >
 
                         {member.name} — {member.email}
+                        {member.status !== "Active" ? " (Inactive)" : ""}
 
                       </option>
 
@@ -1001,6 +1024,8 @@ export default function IssueBooks() {
                   <input
                     type="date"
                     name="issueDate"
+                    required
+                    max={new Date().toISOString().split("T")[0]}
                     value={form.issueDate}
                     onChange={handleChange}
                     className="
@@ -1032,6 +1057,8 @@ export default function IssueBooks() {
                   <input
                     type="date"
                     name="dueDate"
+                    required
+                    min={form.issueDate}
                     value={form.dueDate}
                     min={form.issueDate}
                     onChange={handleChange}

@@ -1,8 +1,54 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const Book = require("../models/Book");
+const Book = require("../models/book");
+const Issue = require("../models/Issue");
+const {
+  cleanText,
+  isValidIsbn,
+  pick,
+  sendValidationError,
+} = require("../utils/validation");
 
 const router = express.Router();
+
+const validateBook = (payload) => {
+  const data = pick(payload, [
+    "title",
+    "author",
+    "category",
+    "isbn",
+    "quantity",
+  ]);
+  const errors = {};
+
+  data.title = cleanText(data.title);
+  data.author = cleanText(data.author);
+  data.category = cleanText(data.category) || "General";
+  data.isbn = cleanText(data.isbn).replace(/[\s-]/g, "").toUpperCase();
+  data.quantity = Number(data.quantity);
+
+  if (data.title.length < 2 || data.title.length > 150) {
+    errors.title = "Title must be between 2 and 150 characters";
+  }
+  if (data.author.length < 2 || data.author.length > 100) {
+    errors.author = "Author must be between 2 and 100 characters";
+  }
+  if (data.category.length > 50) {
+    errors.category = "Category cannot exceed 50 characters";
+  }
+  if (!isValidIsbn(data.isbn)) {
+    errors.isbn = "Enter a valid ISBN-10 or ISBN-13";
+  }
+  if (
+    !Number.isInteger(data.quantity) ||
+    data.quantity < 1 ||
+    data.quantity > 10000
+  ) {
+    errors.quantity = "Quantity must be a whole number between 1 and 10,000";
+  }
+
+  return { data, errors };
+};
 
 // ==========================================
 // GET ALL BOOKS
@@ -74,29 +120,24 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const {
-      title,
-      author,
-      category,
-      isbn,
-      quantity,
-    } = req.body;
+    const { data, errors } = validateBook(req.body);
 
-    if (!title || !author || !isbn) {
-      return res.status(400).json({
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
+    }
+
+    const existingBook = await Book.findOne({ isbn: data.isbn });
+    if (existingBook) {
+      return res.status(409).json({
         success: false,
-        message:
-          "Title, author and ISBN are required",
+        message: "A book with this ISBN already exists",
+        errors: { isbn: "ISBN must be unique" },
       });
     }
 
     const book = new Book({
-      title,
-      author,
-      category,
-      isbn,
-      quantity,
-      available: quantity,
+      ...data,
+      available: data.quantity,
     });
 
     const savedBook = await book.save();
@@ -131,21 +172,46 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    const book = await Book.findByIdAndUpdate(
-      id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const { data, errors } = validateBook(req.body);
 
-    if (!book) {
+    if (Object.keys(errors).length > 0) {
+      return sendValidationError(res, errors);
+    }
+
+    const existingBook = await Book.findById(id);
+
+    if (!existingBook) {
       return res.status(404).json({
         success: false,
         message: "Book not found",
       });
     }
+
+    const duplicateIsbn = await Book.findOne({
+      isbn: data.isbn,
+      _id: { $ne: id },
+    });
+    if (duplicateIsbn) {
+      return res.status(409).json({
+        success: false,
+        message: "A book with this ISBN already exists",
+        errors: { isbn: "ISBN must be unique" },
+      });
+    }
+
+    const issuedCopies = existingBook.quantity - existingBook.available;
+    if (data.quantity < issuedCopies) {
+      return res.status(400).json({
+        success: false,
+        message: `Quantity cannot be lower than ${issuedCopies} currently issued copies`,
+        errors: { quantity: "Quantity is lower than the issued copy count" },
+      });
+    }
+
+    Object.assign(existingBook, data, {
+      available: data.quantity - issuedCopies,
+    });
+    const book = await existingBook.save();
 
     res.status(200).json({
       success: true,
@@ -174,6 +240,18 @@ router.delete("/:id", async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid book ID",
+      });
+    }
+
+    const activeIssue = await Issue.exists({
+      bookId: id,
+      status: "Issued",
+    });
+
+    if (activeIssue) {
+      return res.status(409).json({
+        success: false,
+        message: "Return all issued copies before deleting this book",
       });
     }
 
