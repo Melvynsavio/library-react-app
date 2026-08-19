@@ -1,5 +1,16 @@
 import { useState, useEffect } from "react";
 
+const EMPTY_BOOK = {
+title:"",
+author:"",
+isbn:"",
+category:"",
+publisher:"",
+year:"",
+quantity:"",
+cover:""
+};
+
 export default function BookModal({
 
 isOpen,
@@ -12,20 +23,7 @@ onSave
 
 }){
 
-const emptyBook={
-
-title:"",
-author:"",
-isbn:"",
-category:"",
-publisher:"",
-year:"",
-quantity:"",
-cover:""
-
-};
-
-const [form,setForm]=useState(emptyBook);
+const [form,setForm]=useState(EMPTY_BOOK);
 
 useEffect(()=>{
 
@@ -35,7 +33,7 @@ setForm(book);
 
 }else{
 
-setForm(emptyBook);
+setForm(EMPTY_BOOK);
 
 }
 

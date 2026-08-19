@@ -1,6 +1,18 @@
+export const isValidName = (value) => {
+  const name = value.trim();
+  return (
+    name.length >= 2 &&
+    name.length <= 100 &&
+    /^[\p{L}][\p{L}\p{M} .'’-]*$/u.test(name)
+  );
+};
+
 export const isValidEmail = (value) => {
   const email = value.trim();
-  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return (
+    email.length <= 254 &&
+    /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i.test(email)
+  );
 };
 
 export const isValidPhone = (value) => {

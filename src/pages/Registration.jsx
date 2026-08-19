@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { isValidEmail, validatePassword } from "../utils/validation";
+import { isValidEmail, isValidName, validatePassword } from "../utils/validation";
 import { toast } from "react-hot-toast";
 
 function Registration() {
@@ -15,12 +15,40 @@ function Registration() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateField = (name, value) => {
+    if (name === "name" && !isValidName(value)) {
+      return "Use 2–100 letters; spaces, apostrophes, and hyphens are allowed";
+    }
+    if (name === "email" && !isValidEmail(value)) {
+      return "Enter a valid email address, such as name@example.com";
+    }
+    return "";
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    if (errors[name]) {
+      setErrors((current) => ({
+        ...current,
+        [name]: validateField(name, value),
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === "name" || name === "email") {
+      setErrors((current) => ({
+        ...current,
+        [name]: validateField(name, value),
+      }));
+    }
   };
 
   const handleRegister = async (e) => {
@@ -36,12 +64,14 @@ function Registration() {
     const normalizedName = name.trim();
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (normalizedName.length < 2 || normalizedName.length > 100) {
-      toast.error("Name must be between 2 and 100 characters");
-      return;
-    }
-    if (!isValidEmail(normalizedEmail)) {
-      toast.error("Enter a valid email address");
+    const fieldErrors = {
+      name: validateField("name", normalizedName),
+      email: validateField("email", normalizedEmail),
+    };
+    setErrors(fieldErrors);
+
+    if (fieldErrors.name || fieldErrors.email) {
+      toast.error(fieldErrors.name || fieldErrors.email);
       return;
     }
     const passwordError = validatePassword(password);
@@ -158,8 +188,17 @@ function Registration() {
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                onBlur={handleBlur}
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby="name-error"
+                className={`w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 ${errors.name ? "border-red-500 focus:ring-red-200" : "border-slate-300 focus:ring-blue-500"}`}
               />
+
+              {errors.name && (
+                <p id="name-error" className="mt-1 text-sm text-red-600">
+                  {errors.name}
+                </p>
+              )}
 
             </div>
 
@@ -180,8 +219,17 @@ function Registration() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                onBlur={handleBlur}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby="email-error"
+                className={`w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-200" : "border-slate-300 focus:ring-blue-500"}`}
               />
+
+              {errors.email && (
+                <p id="email-error" className="mt-1 text-sm text-red-600">
+                  {errors.email}
+                </p>
+              )}
 
             </div>
 

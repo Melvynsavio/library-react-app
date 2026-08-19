@@ -3,6 +3,7 @@ const User = require("../models/User");
 const {
   cleanText,
   isValidEmail,
+  isValidName,
   sendValidationError,
 } = require("../utils/validation");
 
@@ -40,8 +41,8 @@ router.post("/register", async (req, res) => {
       typeof body.password === "string" ? body.password : "";
     const errors = {};
 
-    if (name.length < 2 || name.length > 100) {
-      errors.name = "Name must be between 2 and 100 characters";
+    if (!isValidName(name)) {
+      errors.name = "Enter a valid name using letters, spaces, apostrophes, or hyphens";
     }
     if (!isValidEmail(email)) {
       errors.email = "Enter a valid email address";

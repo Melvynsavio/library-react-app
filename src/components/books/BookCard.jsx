@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FaEdit, FaTrash, FaBook } from "react-icons/fa";
+import { FaBook } from "react-icons/fa";
 
 export default function BookCard({ book, onEdit, onDelete }) {
   return (

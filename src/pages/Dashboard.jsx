@@ -1,23 +1,6 @@
-import { useEffect, useState } from "react";
-import api from "../services/api";
-
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import DashboardCard from "../components/DashboardCard";
-
-import {
-
-BarChart,
-Bar,
-XAxis,
-YAxis,
-Tooltip,
-ResponsiveContainer,
-PieChart,
-Pie,
-Cell
-
-} from "recharts";
 const Dashboard = () => {
 
   return (

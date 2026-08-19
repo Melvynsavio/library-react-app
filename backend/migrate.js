@@ -34,9 +34,7 @@ async function migrate() {
       fs.readFileSync(dbPath, "utf8")
     );
 
-    // =====================================
-    // BOOKS
-    // =====================================
+    
 
     if (data.books && data.books.length > 0) {
 
@@ -82,9 +80,6 @@ async function migrate() {
       );
     }
 
-    // =====================================
-    // MEMBERS
-    // =====================================
 
     if (
       data.members &&

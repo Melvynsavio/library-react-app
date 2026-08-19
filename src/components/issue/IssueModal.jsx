@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+const EMPTY_ISSUE = {
+bookId:"",
+memberId:"",
+issueDate:"",
+dueDate:""
+};
+
 export default function IssueModal({
 
 isOpen,
@@ -15,23 +22,11 @@ onSave
 
 }){
 
-const empty={
-
-bookId:"",
-
-memberId:"",
-
-issueDate:"",
-
-dueDate:""
-
-};
-
-const[form,setForm]=useState(empty);
+const[form,setForm]=useState(EMPTY_ISSUE);
 
 useEffect(()=>{
 
-setForm(empty);
+setForm(EMPTY_ISSUE);
 
 },[isOpen]);
 

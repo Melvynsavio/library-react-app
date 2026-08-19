@@ -4,11 +4,7 @@ import * as XLSX from "xlsx";
 
 export default function ExportButtons({
 
-books,
-
-members,
-
-issues
+books
 
 }){
 

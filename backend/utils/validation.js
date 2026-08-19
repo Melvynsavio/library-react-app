@@ -1,7 +1,16 @@
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i;
 
 const cleanText = (value) =>
   typeof value === "string" ? value.trim() : "";
+
+const isValidName = (value) => {
+  const name = cleanText(value);
+  return (
+    name.length >= 2 &&
+    name.length <= 100 &&
+    /^[\p{L}][\p{L}\p{M} .'’-]*$/u.test(name)
+  );
+};
 
 const isValidEmail = (value) => {
   const email = cleanText(value);
@@ -79,6 +88,7 @@ module.exports = {
   cleanText,
   isValidDate,
   isValidEmail,
+  isValidName,
   isValidIsbn,
   isValidPhone,
   pick,

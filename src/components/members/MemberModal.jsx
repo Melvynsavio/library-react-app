@@ -1,30 +1,30 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
+const EMPTY_MEMBER = {
+  name: "",
+  email: "",
+  phone: "",
+  department: "",
+  membership: "Student",
+  address: "",
+  avatar: "",
+  status: "Active",
+};
+
 export default function MemberModal({
   isOpen,
   member,
   onClose,
   onSave,
 }) {
-  const emptyMember = {
-    name: "",
-    email: "",
-    phone: "",
-    department: "",
-    membership: "Student",
-    address: "",
-    avatar: "",
-    status: "Active",
-  };
-
-  const [form, setForm] = useState(emptyMember);
+  const [form, setForm] = useState(EMPTY_MEMBER);
 
   useEffect(() => {
     if (member) {
       setForm(member);
     } else {
-      setForm(emptyMember);
+      setForm(EMPTY_MEMBER);
     }
   }, [member]);
 
